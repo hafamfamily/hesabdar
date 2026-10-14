@@ -20,7 +20,8 @@ export function useRoute(): [Route, (r: Route) => void] {
     return () => window.removeEventListener('hashchange', on)
   }, [])
   const go = (r: Route) => {
-    location.hash = r === 'home' ? '/' : `/${r}`
+    // توکن ساده بدون «/» تا در همه‌جا (از جمله قاب پیش‌نمایش) معتبر باشد
+    location.hash = r === 'home' ? 'home' : r
   }
   return [route, go]
 }

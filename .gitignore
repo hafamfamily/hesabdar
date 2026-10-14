@@ -12,3 +12,4 @@ certs/
 *.key
 .env
 *.tsbuildinfo
+dist-preview/
