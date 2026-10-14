@@ -1,5 +1,5 @@
 import {
-  Bell, BellRing, CalendarPlus, ChevronLeft, CloudOff, Database, Download, FileSpreadsheet, Info, Monitor, Moon, RefreshCw, Server, Sun, Tags, Upload, Wallet,
+  Bell, BellRing, CalendarPlus, ChevronLeft, CloudOff, HardDrive, Trash2, Database, Download, FileSpreadsheet, Info, Monitor, Moon, RefreshCw, Server, Sun, Tags, Upload, Wallet,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
@@ -38,6 +38,21 @@ export function SettingsPage() {
       await store.setReminders({ systemNotifications: true })
       ui.toast('اعلان سیستمی فعال شد')
     } else ui.toast(p === 'unsupported' ? 'این دستگاه/مرورگر از اعلان وب پشتیبانی نمی‌کند' : 'اجازهٔ اعلان داده نشد', 'error')
+  }
+  const wipe = async () => {
+    const ok = await ui.confirm({
+      title: 'حذف همهٔ داده‌ها',
+      message: 'همهٔ تراکنش‌ها، بدهی‌ها، دسته‌های ساخته‌شده و تنظیمات از این دستگاه پاک می‌شوند. این کار برگشت‌پذیر نیست.',
+      confirmLabel: 'حذف همه',
+      danger: true,
+    })
+    if (!ok) return
+    try {
+      await store.wipeAll()
+      ui.toast('همهٔ داده‌ها حذف شد')
+    } catch (e) {
+      ui.toast(e instanceof Error ? e.message : 'خطا', 'error')
+    }
   }
   const later = (stage: string) => () => ui.toast(`این قابلیت در ${stage} فعال می‌شود`, 'info')
 
@@ -104,6 +119,19 @@ export function SettingsPage() {
         <Row icon={<Download size={18} />} tint="#10B981" label="تهیهٔ نسخهٔ پشتیبان (JSON)" onClick={later('مرحلهٔ پنجم')} />
         <Row icon={<Upload size={18} />} tint="#F97316" label="بازیابی از فایل پشتیبان" onClick={later('مرحلهٔ پنجم')} />
         <Row icon={<FileSpreadsheet size={18} />} tint="#0F766E" label="خروجی Excel / CSV" onClick={later('مرحلهٔ پنجم')} />
+        <Row
+          icon={<HardDrive size={18} />}
+          tint="#64748B"
+          label="ذخیره روی این دستگاه"
+          value={store.persisted ? <Badge tone="brand">ماندگار</Badge> : <Badge>عادی</Badge>}
+          onClick={() =>
+            ui.toast(
+              store.persisted ? 'مرورگر اجازهٔ ذخیرهٔ ماندگار داده است' : 'مرورگر هنوز ذخیرهٔ ماندگار را تأیید نکرده؛ برنامه را به صفحهٔ اصلی اضافه کنید',
+              'info',
+            )
+          }
+        />
+        <Row icon={<Trash2 size={18} />} tint="#EF4444" label="حذف همهٔ داده‌ها" onClick={wipe} />
       </Group>
 
       <Group title="درباره">
@@ -111,9 +139,9 @@ export function SettingsPage() {
       </Group>
 
       <p className="mt-6 px-2 text-center text-[12px] leading-6 text-slate-400">
-        پیش‌نمایش مرحلهٔ اول: داده‌ها نمونه هستند و فقط در حافظهٔ موقت نگه داشته می‌شوند.
+        همهٔ داده‌ها فقط روی همین دستگاه ذخیره می‌شوند و بدون اینترنت هم در دسترس‌اند.
         <br />
-        ذخیرهٔ دائمی روی دستگاه در مرحلهٔ دوم اضافه می‌شود.
+        همگام‌سازی با لپ‌تاپ و پشتیبان‌گیری در مراحل بعد اضافه می‌شوند.
       </p>
 
       {balanceOpen && <OpeningBalanceSheet onClose={() => setBalanceOpen(false)} />}
@@ -205,9 +233,13 @@ function OpeningBalanceSheet({ onClose }: { onClose: () => void }) {
     const raw = toEnDigits(text).replace(/[\s,٬،]/g, '')
     const value = raw === '' || raw === '0' ? 0 : parseAmount(text)
     if (typeof value !== 'number' && !value.ok) return setError(value.error)
-    await store.setOpeningBalance(typeof value === 'number' ? value : value.value)
-    ui.toast('موجودی اولیه ذخیره شد')
-    onClose()
+    try {
+      await store.setOpeningBalance(typeof value === 'number' ? value : value.value)
+      ui.toast('موجودی اولیه ذخیره شد')
+      onClose()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'خطا در ذخیره')
+    }
   }
 
   const parsed = parseAmount(text)

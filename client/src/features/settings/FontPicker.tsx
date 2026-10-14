@@ -8,7 +8,7 @@ import { BODY_FONTS, CUSTOM_FAMILY, isCustomFontLoaded, loadCustomFont, TITLE_FO
 const SAMPLE = 'خرید منزل · ۱۲٬۵۰۰٬۰۰۰ تومان'
 
 export function FontPicker() {
-  const { settings, setFonts } = useStore()
+  const { settings, setFonts, saveCustomFont } = useStore()
   const ui = useUI()
   const f = settings.fonts
   const fileRef = useRef<HTMLInputElement>(null)
@@ -23,9 +23,10 @@ export function FontPicker() {
   const onFile = async (file?: File) => {
     if (!file) return
     try {
-      await loadCustomFont(file)
+      const data = await loadCustomFont(file)
+      await saveCustomFont(file.name, data)
       setCustom(file.name)
-      setFonts({ customName: file.name, [target]: 'custom' })
+      await setFonts({ customName: file.name, [target]: 'custom' })
       ui.toast('فونت بارگذاری شد')
     } catch (e) {
       ui.toast(e instanceof Error ? e.message : 'خطا در بارگذاری فونت', 'error')
@@ -78,7 +79,7 @@ export function FontPicker() {
           </button>
         </div>
         <input id="fontfile" ref={fileRef} type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
-        <p className="mt-2 text-[11px] text-slate-400">در پیش‌نمایش فعلی، فونت بارگذاری‌شده با بستن صفحه حذف می‌شود؛ ذخیرهٔ دائمی در مرحلهٔ دوم.</p>
+        <p className="mt-2 text-[11px] text-slate-400">فایل فونت فقط روی همین دستگاه ذخیره می‌شود و به جایی ارسال نمی‌شود.</p>
       </div>
     </div>
   )

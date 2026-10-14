@@ -1,5 +1,5 @@
 import { CheckCircle2, AlertCircle, Info } from 'lucide-react'
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Transaction } from '../data/types'
 import { Button } from '../components/ui'
 import { TransactionForm } from '../features/transactions/TransactionForm'
@@ -31,6 +31,16 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setToast({ id: Date.now(), message, kind })
     timer.current = window.setTimeout(() => setToast(null), 2600)
   }, [])
+
+  // شبکهٔ ایمنی: هر خطای پیش‌بینی‌نشده در ذخیره‌سازی به کاربر نمایش داده شود، نه اینکه بی‌صدا گم شود
+  useEffect(() => {
+    const on = (e: PromiseRejectionEvent) => {
+      const msg = e.reason instanceof Error ? e.reason.message : 'خطای ناشناخته'
+      showToast(msg, 'error')
+    }
+    window.addEventListener('unhandledrejection', on)
+    return () => window.removeEventListener('unhandledrejection', on)
+  }, [showToast])
 
   const confirm = useCallback(
     (opts: ConfirmOpts) => new Promise<boolean>((resolve) => setConfirmState({ ...opts, resolve })),

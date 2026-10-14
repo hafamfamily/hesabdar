@@ -1,12 +1,12 @@
-import { FlaskConical } from 'lucide-react'
+import { Smartphone } from 'lucide-react'
 import { Badge } from './ui'
 
-/** نشانگر وضعیت همگام‌سازی — در مرحلهٔ چهارم به وضعیت واقعی متصل می‌شود */
+/** نشانگر وضعیت ذخیره/همگام‌سازی — در مرحلهٔ چهارم به وضعیت واقعی همگام‌سازی متصل می‌شود */
 export function SyncBadge() {
   return (
-    <Badge tone="amber">
-      <FlaskConical size={13} />
-      پیش‌نمایش
+    <Badge>
+      <Smartphone size={13} />
+      ذخیره روی دستگاه
     </Badge>
   )
 }

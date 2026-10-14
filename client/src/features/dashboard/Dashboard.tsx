@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, BellRing, ChevronLeft, Eye, EyeOff, Plus, Receipt, Wallet } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, BellRing, ChevronLeft, Sparkles, Eye, EyeOff, Plus, Receipt, Wallet } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
 import type { Route } from '../../app/router'
@@ -16,7 +16,8 @@ import { formatNumber } from '../../lib/money'
 import { TransactionRow } from '../transactions/TransactionRow'
 
 export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
-  const { transactions, settings, debts } = useStore()
+  const store = useStore()
+  const { transactions, settings, debts } = store
   const catMap = useCategoryMap()
   const ui = useUI()
   const [hidden, setHidden] = useState(false)
@@ -43,6 +44,35 @@ export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
         subtitle={`${WEEKDAYS[weekdayIndex(today)]}، ${formatJLong(today)}`}
         action={<SyncBadge />}
       />
+
+      {/* شروع کار: وقتی هنوز داده‌ای ثبت نشده */}
+      {transactions.length === 0 && debts.length === 0 && (
+        <Card className="animate-rise">
+          <p className="font-title text-[18px]">خوش آمدید</p>
+          <p className="mt-1 text-[13px] leading-6 text-slate-500 dark:text-slate-400">
+            برای شروع، موجودی فعلی خود را در «تنظیمات ← موجودی اولیه» وارد کنید و اولین تراکنش را ثبت کنید.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={() => onNavigate('settings')} className="h-10 rounded-xl bg-brand px-4 text-[13px] font-semibold text-white">
+              تنظیم موجودی اولیه
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await store.loadSampleData()
+                  ui.toast('دادهٔ نمونه اضافه شد؛ از تنظیمات می‌توانید همه را حذف کنید', 'info')
+                } catch (e) {
+                  ui.toast(e instanceof Error ? e.message : 'خطا', 'error')
+                }
+              }}
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-slate-100 px-4 text-[13px] font-semibold dark:bg-white/5"
+            >
+              <Sparkles size={15} /> دیدن با دادهٔ نمونه
+            </button>
+          </div>
+        </Card>
+      )}
 
       {/* کارت موجودی */}
       <section className="relative animate-rise overflow-hidden rounded-[28px] bg-gradient-to-br from-brand via-teal-800 to-ink p-5 text-white shadow-float">

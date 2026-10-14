@@ -36,11 +36,18 @@ export function applyFonts(f: FontSettings, customLoaded: boolean) {
   }
 }
 
-/** بارگذاری فایل فونت کاربر (TTF/OTF/WOFF/WOFF2) با FontFace API */
-export async function loadCustomFont(file: File): Promise<void> {
+/** بارگذاری فایل فونت کاربر (TTF/OTF/WOFF/WOFF2)؛ محتوای فایل را برای ذخیره برمی‌گرداند */
+export async function loadCustomFont(file: File): Promise<ArrayBuffer> {
   if (file.size > 15 * 1024 * 1024) throw new Error('حجم فایل فونت بیش از حد است')
   if (!/\.(ttf|otf|woff2?)$/i.test(file.name)) throw new Error('فقط فایل‌های TTF، OTF، WOFF یا WOFF2 پذیرفته می‌شوند')
-  const face = new FontFace(CUSTOM_FAMILY, await file.arrayBuffer())
+  const data = await file.arrayBuffer()
+  await loadFontData(data.slice(0))
+  return data
+}
+
+/** ثبت فونت از داده‌های باینری با FontFace API */
+export async function loadFontData(data: ArrayBuffer): Promise<void> {
+  const face = new FontFace(CUSTOM_FAMILY, data)
   try {
     await face.load()
   } catch {
