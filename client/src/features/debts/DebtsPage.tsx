@@ -65,7 +65,7 @@ export function DebtsPage() {
                   <span className="flex-1 truncate">
                     {i.debt.direction === 'borrowed' ? 'پرداخت به' : 'دریافت از'} {i.debt.counterparty}
                   </span>
-                  <span className="tabular-nums font-semibold">{formatNumber(i.installment.amount)}</span>
+                  <span className="font-semibold">{formatNumber(i.installment.amount)}</span>
                   <span className={cx('w-20 text-left text-[11px] font-semibold', i.days < 0 ? 'text-red-500 dark:text-expense' : 'text-amber-600')}>{describeDays(i.days)}</span>
                 </button>
               </li>
@@ -116,7 +116,7 @@ export function DebtsPage() {
                     </p>
                   </div>
                   <div className="text-left">
-                    <p className={cx('text-[15px] font-extrabold tabular-nums', borrowed ? 'text-red-500 dark:text-expense' : 'text-emerald-600 dark:text-income')}>
+                    <p className={cx('text-[15px] font-extrabold', borrowed ? 'text-red-500 dark:text-expense' : 'text-emerald-600 dark:text-income')}>
                       {formatNumber(st.remainingAmount)}
                     </p>
                     <p className="text-[11px] text-slate-400">مانده (تومان)</p>
@@ -128,11 +128,13 @@ export function DebtsPage() {
                 {st.next ? (
                   <p className="mt-2 flex justify-between text-[12px]">
                     <span className="text-slate-500 dark:text-slate-400">
-                      قسط بعد: {formatJDayMonth(st.next.dueDate)} · {formatNumber(st.next.amount)} تومان
+                      {st.next.dueDate ? `قسط بعد: ${formatJDayMonth(st.next.dueDate)}` : 'بدون سررسید'} · {formatNumber(st.next.amount)} تومان
                     </span>
-                    <span className={cx('font-semibold', st.daysToNext! < 0 ? 'text-red-500 dark:text-expense' : st.daysToNext! <= 7 ? 'text-amber-600' : 'text-slate-400')}>
-                      {describeDays(st.daysToNext!)}
-                    </span>
+                    {st.daysToNext !== undefined && (
+                      <span className={cx('font-semibold', st.daysToNext < 0 ? 'text-red-500 dark:text-expense' : st.daysToNext <= 7 ? 'text-amber-600' : 'text-slate-400')}>
+                        {describeDays(st.daysToNext)}
+                      </span>
+                    )}
                   </p>
                 ) : (
                   <p className="mt-2 text-[12px] font-semibold text-brand dark:text-brand-light">تسویه شد ✓</p>
@@ -168,7 +170,7 @@ function SummaryCard({ tone, icon, label, value }: { tone: 'income' | 'expense';
         {icon}
         {label}
       </p>
-      <p className="mt-1 text-[18px] font-extrabold tabular-nums">{formatNumber(value)}</p>
+      <p className="mt-1 text-[18px] font-extrabold">{formatNumber(value)}</p>
       <p className="text-[11px] opacity-70">تومان مانده</p>
     </div>
   )

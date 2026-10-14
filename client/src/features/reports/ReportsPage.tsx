@@ -170,7 +170,7 @@ export function ReportsPage() {
           <div className="mt-3 flex items-center justify-between text-[13px]">
             <span className="text-slate-500 dark:text-slate-400">
               مانده خالص:{' '}
-              <b className={cx('tabular-nums', sum.net >= 0 ? 'text-brand dark:text-brand-light' : 'text-red-500 dark:text-expense')}>
+              <b className={cx(sum.net >= 0 ? 'text-brand dark:text-brand-light' : 'text-red-500 dark:text-expense')}>
                 {formatNumber(sum.net)} تومان
               </b>
             </span>
@@ -224,7 +224,7 @@ export function ReportsPage() {
                   <li key={s.category.id} className="flex items-center gap-2 text-[13px]">
                     <span className="size-2.5 shrink-0 rounded-full" style={{ background: s.category.color }} />
                     <span className="truncate">{s.category.name}</span>
-                    <span className="ms-auto font-semibold tabular-nums text-slate-500">{percent(s.share)}</span>
+                    <span className="ms-auto font-semibold text-slate-500">{percent(s.share)}</span>
                   </li>
                 ))}
               </ul>

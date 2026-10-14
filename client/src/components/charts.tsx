@@ -28,7 +28,7 @@ export function IncomeExpenseBars({
         {sel ? (
           <>
             <span className="font-semibold text-slate-600 dark:text-slate-300">{sel.label}</span>
-            <span className="flex gap-3 tabular-nums">
+            <span className="flex gap-3">
               <bdi className="text-emerald-600 dark:text-income">+{formatNumber(sel.income)}</bdi>
               <bdi className="text-red-500 dark:text-expense">−{formatNumber(sel.expense)}</bdi>
             </span>
@@ -133,7 +133,7 @@ export function Donut({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
         <span className="text-[11px] text-slate-400">{centerLabel}</span>
-        <span className="text-[14px] font-extrabold tabular-nums">{centerValue}</span>
+        <span className="text-[14px] font-extrabold">{centerValue}</span>
       </div>
     </div>
   )

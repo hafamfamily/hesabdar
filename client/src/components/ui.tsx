@@ -22,7 +22,7 @@ export function Card({ children, className }: { children: ReactNode; className?:
 export function SectionHeader({ title, action }: { title: string; action?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-[15px] font-bold text-ink dark:text-slate-100">{title}</h2>
+      <h2 className="font-title text-[17px] text-ink dark:text-slate-100">{title}</h2>
       {action}
     </div>
   )
@@ -126,7 +126,7 @@ export function Amount({
   const sign = signed && type ? (type === 'income' ? '+' : '−') : ''
   const color = type === 'income' ? 'text-emerald-600 dark:text-income' : type === 'expense' ? 'text-red-500 dark:text-expense' : ''
   return (
-    <span className={cx('tabular-nums', color, className)}>
+    <span className={cx(color, className)}>
       <bdi>
         {sign}
         {formatNumber(value)}

@@ -8,7 +8,7 @@ import type { Debt, Installment } from '../../data/types'
 import { buildIcs, debtStatus, describeDays } from '../../lib/debts'
 import { toFaDigits } from '../../lib/digits'
 import { diffDays, formatJLong, formatJNumeric, todayIso } from '../../lib/jalali'
-import { formatNumber } from '../../lib/money'
+import { formatAmountInput, formatNumber, parseAmount } from '../../lib/money'
 import { downloadFile } from '../../lib/reminders'
 import { Toggle } from './DebtForm'
 
@@ -84,7 +84,13 @@ export function DebtDetail({ debtId, onClose, onEdit }: { debtId: string; onClos
             <Info label="اقساط پرداخت‌شده" value={`${toFaDigits(st.paidCount)} از ${toFaDigits(st.count)}`} />
             <Info label="اقساط باقی‌مانده" value={toFaDigits(st.count - st.paidCount)} />
             {debt.principal ? <Info label="مبلغ اصل" value={`${formatNumber(debt.principal)} تومان`} /> : null}
-            {st.next && <Info label="قسط بعدی" value={formatJLong(st.next.dueDate)} />}
+            {st.next && <Info label="قسط بعدی" value={st.next.dueDate ? formatJLong(st.next.dueDate) : 'بدون سررسید'} />}
+            {debt.disbursement && (
+              <>
+                <Info label={borrowed ? 'واردشده به موجودی' : 'خارج‌شده از موجودی'} value={`${formatNumber(debt.disbursement.amount)} تومان`} />
+                <Info label={borrowed ? 'تاریخ دریافت' : 'تاریخ پرداخت'} value={formatJLong(debt.disbursement.date)} />
+              </>
+            )}
           </div>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/5">
             <span className="block h-full rounded-full bg-brand transition-all" style={{ width: `${progress * 100}%` }} />
@@ -120,7 +126,7 @@ export function DebtDetail({ debtId, onClose, onEdit }: { debtId: string; onClos
             .sort((a, b) => a.index - b.index)
             .filter((ins) => showPaid || st.paidCount <= 2 || !ins.paidDate)
             .map((ins) => {
-              const days = diffDays(today, ins.dueDate)
+              const days = ins.dueDate ? diffDays(today, ins.dueDate) : Infinity
               const overdue = !ins.paidDate && days < 0
               const soon = !ins.paidDate && days >= 0 && days <= 7
               return (
@@ -134,15 +140,16 @@ export function DebtDetail({ debtId, onClose, onEdit }: { debtId: string; onClos
                       ins.paidDate ? 'bg-brand text-white ring-brand' : overdue ? 'ring-expense' : 'ring-slate-300 dark:ring-slate-600',
                     )}
                   >
-                    {ins.paidDate ? <Check size={16} strokeWidth={3} /> : <span className="text-[12px] tabular-nums text-slate-400">{toFaDigits(ins.index)}</span>}
+                    {ins.paidDate ? <Check size={16} strokeWidth={3} /> : <span className="text-[12px] text-slate-400">{toFaDigits(ins.index)}</span>}
                   </button>
                   <div className="min-w-0 flex-1">
-                    <p className={cx('text-[14px] font-semibold tabular-nums', ins.paidDate && 'text-slate-400 line-through decoration-slate-300')}>
+                    <p className={cx('text-[14px] font-semibold', ins.paidDate && 'text-slate-400 line-through decoration-slate-300')}>
                       {formatNumber(ins.amount)} <span className="text-[11px] font-normal">تومان</span>
                     </p>
                     <p className="text-[12px] text-slate-400">
-                      سررسید {formatJNumeric(ins.dueDate)}
-                      {ins.paidDate && ` · پرداخت ${formatJNumeric(ins.paidDate)}`}
+                      {ins.dueDate ? `سررسید ${formatJNumeric(ins.dueDate)}` : 'بدون سررسید'}
+                      {ins.paidDate && (ins.paidBefore ? ' · پیش از برنامه' : ` · پرداخت ${formatJNumeric(ins.paidDate)}`)}
+                      {ins.transactionId && ' · در گزارش'}
                     </p>
                   </div>
                   {overdue && <span className="text-[11px] font-semibold text-red-500 dark:text-expense">{describeDays(days)}</span>}
@@ -162,7 +169,7 @@ function Info({ label, value, strong }: { label: string; value: string; strong?:
   return (
     <div>
       <p className="text-[11px] text-slate-400">{label}</p>
-      <p className={cx('tabular-nums', strong ? 'text-[16px] font-extrabold text-brand dark:text-brand-light' : 'font-semibold')}>{value}</p>
+      <p className={cx(strong ? 'text-[16px] font-extrabold text-brand dark:text-brand-light' : 'font-semibold')}>{value}</p>
     </div>
   )
 }
@@ -172,18 +179,29 @@ function PaySheet({ debt, ins, onClose }: { debt: Debt; ins: Installment; onClos
   const ui = useUI()
   const today = todayIso()
   const [date, setDate] = useState(today)
-  const [createTx, setCreateTx] = useState(true)
+  const [amountText, setAmountText] = useState(formatNumber(ins.amount))
+  const [recordAsTx, setRecordAsTx] = useState(false)
   const borrowed = debt.direction === 'borrowed'
   const type = borrowed ? 'expense' : 'income'
   const cats = store.categories.filter((c) => c.type === type && !c.archived)
   const preferred = borrowed ? 'exp-debt' : 'inc-debt'
   const [categoryId, setCategoryId] = useState(cats.some((c) => c.id === preferred) ? preferred : (cats[0]?.id ?? ''))
+  const parsed = parseAmount(amountText)
+  const partial = parsed.ok && parsed.value < ins.amount
 
   const save = async () => {
-    await store.markInstallmentPaid(debt.id, ins.id, { date, createTx, categoryId })
-    ui.toast(borrowed ? 'پرداخت قسط ثبت شد' : 'دریافت قسط ثبت شد')
-    onClose()
+    if (!parsed.ok) return ui.toast(parsed.error, 'error')
+    if (parsed.value > ins.amount) return ui.toast('مبلغ نمی‌تواند از مبلغ قسط بیشتر باشد', 'error')
+    try {
+      await store.markInstallmentPaid(debt.id, ins.id, { date, amount: parsed.value, recordAsTx, categoryId })
+      ui.toast(borrowed ? 'پرداخت قسط ثبت شد' : 'دریافت قسط ثبت شد')
+      onClose()
+    } catch (e) {
+      ui.toast(e instanceof Error ? e.message : 'خطا', 'error')
+    }
   }
+
+  const dateOptions = [{ v: today, l: 'امروز' }, ...(ins.dueDate && ins.dueDate !== today ? [{ v: ins.dueDate, l: `سررسید (${formatJNumeric(ins.dueDate)})` }] : [])]
 
   return (
     <Sheet
@@ -196,14 +214,26 @@ function PaySheet({ debt, ins, onClose }: { debt: Debt; ins: Installment; onClos
         </Button>
       }
     >
-      <p className="mb-4 text-center text-[28px] font-extrabold tabular-nums">
-        {formatNumber(ins.amount)} <span className="text-[14px] font-medium text-slate-400">تومان</span>
-      </p>
-      <div className="mb-4 grid grid-cols-2 gap-2">
-        {[
-          { v: today, l: 'امروز' },
-          { v: ins.dueDate, l: `سررسید (${formatJNumeric(ins.dueDate)})` },
-        ].map((o) => (
+      <div className="mb-4 rounded-3xl bg-white p-4 text-center shadow-card dark:bg-night-card dark:shadow-none">
+        <label htmlFor="payamt" className="text-[12px] text-slate-400">
+          مبلغ {borrowed ? 'پرداختی' : 'دریافتی'} (تومان)
+        </label>
+        <input
+          id="payamt"
+          dir="ltr"
+          inputMode="numeric"
+          value={amountText}
+          onChange={(e) => setAmountText(formatAmountInput(e.target.value))}
+          className="w-full bg-transparent text-center text-[28px] font-extrabold outline-none"
+        />
+        {partial && (
+          <p className="text-[12px] text-amber-600">
+            پرداخت بخشی: {formatNumber(ins.amount - parsed.value)} تومان به‌عنوان قسط باقی می‌ماند
+          </p>
+        )}
+      </div>
+      <div className={cx('mb-4 grid gap-2', dateOptions.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
+        {dateOptions.map((o) => (
           <button
             key={o.l}
             type="button"
@@ -214,15 +244,18 @@ function PaySheet({ debt, ins, onClose }: { debt: Debt; ins: Installment; onClos
           </button>
         ))}
       </div>
+      <p className="mb-3 rounded-2xl bg-brand/5 p-3 text-[13px] leading-6 text-slate-600 dark:bg-brand-light/10 dark:text-slate-300">
+        این مبلغ {borrowed ? 'از موجودی کم' : 'به موجودی اضافه'} و از مانده {borrowed ? 'بدهی' : 'طلب'} کسر می‌شود.
+      </p>
       <div className="rounded-3xl bg-white p-4 shadow-card dark:bg-night-card dark:shadow-none">
-        <label className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <span>
-            <span className="block font-semibold">ثبت در {borrowed ? 'هزینه‌ها' : 'درآمدها'}</span>
-            <span className="text-[12px] text-slate-400">مانده حساب هم به‌روز می‌شود</span>
+            <span className="block font-semibold">در گزارش {borrowed ? 'هزینه‌ها' : 'درآمدها'} هم دیده شود</span>
+            <span className="text-[12px] leading-5 text-slate-400">مثلاً برای سود وام یا اگر می‌خواهید در نمودارها بیاید</span>
           </span>
-          <Toggle checked={createTx} onChange={setCreateTx} />
-        </label>
-        {createTx && (
+          <Toggle label="ثبت در گزارش" checked={recordAsTx} onChange={setRecordAsTx} />
+        </div>
+        {recordAsTx && (
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}

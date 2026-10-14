@@ -1,10 +1,14 @@
 @import "tailwindcss";
 @import "@fontsource-variable/vazirmatn/wght.css";
+@import "@fontsource-variable/estedad/wght.css";
+@import "@fontsource-variable/noto-naskh-arabic/wght.css";
+@import "@fontsource/lalezar/400.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Vazirmatn Variable", "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  /* فونت‌ها از تنظیمات برنامه (lib/fonts.ts) با متغیر CSS تعیین می‌شوند */
+  --font-sans: var(--app-font, "Estedad Variable", "Vazirmatn Variable", ui-sans-serif, system-ui, sans-serif);
 
   /* پالت اصلی */
   --color-brand: #0F766E;
@@ -72,6 +76,13 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-brand-light;
   }
+}
+
+/* فونت تیتر (عنوان صفحه‌ها، مبالغ اصلی) */
+@utility font-title {
+  font-family: var(--app-title-font, var(--app-font, "Lalezar", sans-serif));
+  font-weight: var(--app-title-weight, 400);
+  letter-spacing: 0;
 }
 
 @utility pt-safe {

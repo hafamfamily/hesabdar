@@ -124,7 +124,7 @@ export function TransactionForm({ open, tx, onClose }: { open: boolean; tx?: Tra
               setError(null)
             }}
             className={cx(
-              'mt-1 w-full bg-transparent text-center text-[34px] font-extrabold tracking-tight tabular-nums outline-none placeholder:text-slate-300 dark:placeholder:text-slate-600',
+              'mt-1 w-full bg-transparent text-center text-[34px] font-extrabold tracking-tight outline-none placeholder:text-slate-300 dark:placeholder:text-slate-600',
               accent,
             )}
           />

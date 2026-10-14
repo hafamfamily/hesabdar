@@ -11,6 +11,7 @@ import type { ThemePref } from '../../data/types'
 import { amountInWords, formatAmountInput, formatNumber, parseAmount } from '../../lib/money'
 import { toEnDigits } from '../../lib/digits'
 import { CategoryManager } from './CategoryManager'
+import { FontPicker } from './FontPicker'
 import { Toggle } from '../debts/DebtForm'
 import { buildIcs } from '../../lib/debts'
 import { downloadFile, notificationSupport, requestNotificationPermission } from '../../lib/reminders'
@@ -84,6 +85,10 @@ export function SettingsPage() {
         </div>
       </Group>
 
+      <Group title="فونت">
+        <FontPicker />
+      </Group>
+
       <Group title="سرور و همگام‌سازی">
         <Row icon={<Server size={18} />} tint="#0EA5E9" label="وضعیت سرور" value={<Badge>مرحلهٔ سوم</Badge>} onClick={later('مرحلهٔ سوم')} />
         <Row icon={<CloudOff size={18} />} tint="#64748B" label="آخرین همگام‌سازی" value="—" />
@@ -141,7 +146,7 @@ function Row({ icon, tint, label, value, onClick }: { icon: ReactNode; tint: str
         {icon}
       </span>
       <span className="flex-1 text-[15px] font-medium">{label}</span>
-      {value && <span className="text-[14px] text-slate-400 tabular-nums">{value}</span>}
+      {value && <span className="text-[14px] text-slate-400">{value}</span>}
       {onClick && <ChevronLeft size={18} className="text-slate-300 dark:text-slate-600" />}
     </Tag>
   )
@@ -233,7 +238,7 @@ function OpeningBalanceSheet({ onClose }: { onClose: () => void }) {
             setError(null)
           }}
           placeholder="۰"
-          className="w-full bg-transparent text-center text-[30px] font-extrabold tabular-nums text-brand outline-none dark:text-brand-light"
+          className="w-full bg-transparent text-center text-[30px] font-extrabold text-brand outline-none dark:text-brand-light"
         />
         <p className="min-h-5 text-[13px] text-slate-500">{parsed.ok ? amountInWords(parsed.value) : 'تومان'}</p>
       </div>

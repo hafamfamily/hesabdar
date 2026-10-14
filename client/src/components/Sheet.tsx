@@ -39,7 +39,7 @@ export function Sheet({
       >
         <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-700" />
         <header className="flex items-center justify-between px-5 pb-2 pt-3">
-          <h2 className="text-[17px] font-bold">{title}</h2>
+          <h2 className="font-title text-[19px]">{title}</h2>
           <button
             type="button"
             onClick={onClose}

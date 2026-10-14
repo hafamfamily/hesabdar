@@ -147,7 +147,7 @@ export function TransactionsPage() {
           <MiniSum label="هزینه" value={sum.expense} type="expense" />
           <div>
             <p className="text-[11px] text-slate-400">خالص</p>
-            <p className={cx('text-[14px] font-bold tabular-nums', sum.net < 0 && 'text-red-500 dark:text-expense')}>{formatNumber(sum.net)}</p>
+            <p className={cx('text-[14px] font-bold', sum.net < 0 && 'text-red-500 dark:text-expense')}>{formatNumber(sum.net)}</p>
           </div>
         </div>
       </Card>
@@ -164,7 +164,7 @@ export function TransactionsPage() {
               <section key={g.date}>
                 <div className="mb-1.5 flex items-center justify-between px-1 text-[12px]">
                   <span className="font-bold text-slate-500 dark:text-slate-400">{formatRelativeDay(g.date)}</span>
-                  <span className="tabular-nums text-slate-400">
+                  <span className="text-slate-400">
                     {day.income > 0 && <bdi className="text-emerald-600 dark:text-income">+{formatNumber(day.income)}</bdi>}
                     {day.expense > 0 && <bdi className="ms-2 text-red-500 dark:text-expense">−{formatNumber(day.expense)}</bdi>}
                   </span>

@@ -56,7 +56,7 @@ export function JalaliCalendar({
               disabled={disabled}
               onClick={() => onChange(iso)}
               className={cx(
-                'mx-auto grid size-10 place-items-center rounded-full text-[15px] tabular-nums transition',
+                'mx-auto grid size-10 place-items-center rounded-full text-[15px] transition',
                 selected
                   ? 'bg-brand font-bold text-white'
                   : isToday

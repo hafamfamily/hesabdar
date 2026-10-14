@@ -17,10 +17,13 @@ export function totals(txs: Transaction[]): Totals {
   return { income, expense, net: income - expense }
 }
 
-/** مانده فعلی = موجودی اولیه + مجموع درآمدها − مجموع هزینه‌ها */
-export function currentBalance(openingBalance: number, txs: Transaction[]): number {
+/**
+ * مانده فعلی = موجودی اولیه + درآمدها − هزینه‌ها + اثر نقدی بدهی‌ها
+ * (اثر نقدی بدهی‌ها: قرض/وام دریافتی − قرض داده‌شده − اقساط پرداختی + اقساط دریافتی؛ رجوع به debtCashFlow)
+ */
+export function currentBalance(openingBalance: number, txs: Transaction[], debtNet = 0): number {
   const t = totals(txs)
-  return openingBalance + t.income - t.expense
+  return openingBalance + t.income - t.expense + debtNet
 }
 
 export function filterRange(txs: Transaction[], r: DateRange): Transaction[] {

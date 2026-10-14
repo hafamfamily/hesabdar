@@ -4,7 +4,7 @@ import { PageHeader } from '../../app/AppShell'
 import type { Route } from '../../app/router'
 import { useUI } from '../../app/ui-context'
 import { useDueList } from '../../app/useReminders'
-import { describeDays } from '../../lib/debts'
+import { debtCashFlow, debtPosition, describeDays } from '../../lib/debts'
 import { IncomeExpenseBars } from '../../components/charts'
 import { SyncBadge } from '../../components/SyncBadge'
 import { Card, EmptyState, SectionHeader, cx } from '../../components/ui'
@@ -16,7 +16,7 @@ import { formatNumber } from '../../lib/money'
 import { TransactionRow } from '../transactions/TransactionRow'
 
 export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
-  const { transactions, settings } = useStore()
+  const { transactions, settings, debts } = useStore()
   const catMap = useCategoryMap()
   const ui = useUI()
   const [hidden, setHidden] = useState(false)
@@ -24,7 +24,10 @@ export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
   const today = todayIso()
 
   const all = useMemo(() => totals(transactions), [transactions])
-  const balance = currentBalance(settings.openingBalance, transactions)
+  const flow = useMemo(() => debtCashFlow(debts), [debts])
+  const position = useMemo(() => debtPosition(debts, today), [debts, today])
+  const balance = currentBalance(settings.openingBalance, transactions, flow.net)
+  const netWorth = balance - position.owe + position.owed
   const month = currentJMonth(today)
   const monthTx = useMemo(() => filterRange(transactions, month.range), [transactions, month.range])
   const monthTotals = totals(monthTx)
@@ -59,17 +62,53 @@ export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
               {hidden ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </div>
-          <p className="mt-1 text-[34px] font-extrabold tracking-tight tabular-nums">
+          <p className="font-title mt-1 text-[38px] leading-tight">
             <bdi>{mask(balance)}</bdi>
             <span className="ms-1.5 text-[15px] font-medium text-teal-100">تومان</span>
           </p>
-          <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-3 text-center backdrop-blur-sm">
+          <div className="mt-4 grid grid-cols-3 gap-1 rounded-2xl bg-white/10 px-2 py-3 text-center backdrop-blur-sm">
             <Mini label="موجودی اولیه" value={mask(settings.openingBalance)} />
             <Mini label="کل درآمد" value={mask(all.income)} tone="text-emerald-200" />
             <Mini label="کل هزینه" value={mask(all.expense)} tone="text-rose-200" />
           </div>
         </div>
       </section>
+
+      {/* بدهی، طلب و دارایی خالص */}
+      {(position.owe > 0 || position.owed > 0) && (
+        <button
+          type="button"
+          onClick={() => onNavigate('debts')}
+          className="block w-full animate-rise rounded-3xl bg-white p-4 text-start shadow-card ring-1 ring-slate-900/[0.03] dark:bg-night-card dark:shadow-none dark:ring-white/[0.06]"
+        >
+          <div className="grid grid-cols-2 gap-2">
+            <div className="min-w-0 rounded-2xl bg-expense-soft/60 p-2.5 dark:bg-expense/10">
+              <p className="text-[11px] text-red-600/80 dark:text-expense/80">بدهی‌های من</p>
+              <p className="text-[15px] font-extrabold text-red-600 dark:text-expense">{mask(position.owe)}</p>
+            </div>
+            <div className="min-w-0 rounded-2xl bg-income-soft/60 p-2.5 dark:bg-income/10">
+              <p className="text-[11px] text-emerald-700/80 dark:text-income/80">طلب‌های من</p>
+              <p className="text-[15px] font-extrabold text-emerald-700 dark:text-income">{mask(position.owed)}</p>
+            </div>
+            <div className="col-span-2 flex items-center justify-between rounded-2xl bg-brand/5 px-3 py-2.5 dark:bg-brand-light/10">
+              <p className="text-[12px] text-slate-500 dark:text-slate-400">دارایی خالص</p>
+              <p className="font-title text-[18px] text-brand dark:text-brand-light">
+                {mask(netWorth)} <span className="text-[11px] font-normal opacity-70">تومان</span>
+              </p>
+            </div>
+          </div>
+          {flow.net !== 0 && !hidden && (
+            <p className="mt-3 border-t border-slate-100 pt-2 text-[11px] leading-5 text-slate-400 dark:border-night-line">
+              مانده شامل {[
+                flow.received && `${formatNumber(flow.received)} قرض/وام دریافتی`,
+                flow.lent && `−${formatNumber(flow.lent)} قرض داده‌شده`,
+                flow.repaid && `−${formatNumber(flow.repaid)} اقساط پرداختی`,
+                flow.collected && `${formatNumber(flow.collected)} اقساط دریافتی`,
+              ].filter(Boolean).join('، ')} است. دارایی خالص = مانده − بدهی‌ها + طلب‌ها
+            </p>
+          )}
+        </button>
+      )}
 
       {/* ثبت سریع */}
       <button
@@ -100,7 +139,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
                 <span className="flex-1 truncate">
                   {i.debt.direction === 'borrowed' ? 'پرداخت قسط' : 'دریافت از'} {i.debt.counterparty}
                 </span>
-                <span className="font-semibold tabular-nums">{formatNumber(i.installment.amount)}</span>
+                <span className="font-semibold">{formatNumber(i.installment.amount)}</span>
                 <span className={cx('w-20 text-left text-[11px] font-bold', i.days < 0 ? 'text-red-600 dark:text-expense' : '')}>{describeDays(i.days)}</span>
               </li>
             ))}
@@ -163,7 +202,7 @@ function Mini({ label, value, tone }: { label: string; value: string; tone?: str
   return (
     <div className="min-w-0">
       <p className="text-[11px] text-teal-100/80">{label}</p>
-      <p className={cx('mt-0.5 truncate text-[13px] font-bold tabular-nums', tone)}>{value}</p>
+      <p className={cx('mt-0.5 whitespace-nowrap text-[12px] font-bold', tone)}>{value}</p>
     </div>
   )
 }
@@ -180,7 +219,7 @@ function Stat({ icon, label, value, tone, inline }: { icon?: ReactNode; label: s
         {icon}
         {label}
       </p>
-      <p className={cx('text-[16px] font-extrabold tabular-nums', !inline && 'mt-1')}>
+      <p className={cx('text-[16px] font-extrabold', !inline && 'mt-1')}>
         <bdi>{value}</bdi>
         <span className="ms-1 text-[11px] font-normal opacity-70">تومان</span>
       </p>
