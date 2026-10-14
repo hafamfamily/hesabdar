@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "@fontsource-variable/vazirmatn/wght.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Vazirmatn Variable", "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+
+  /* پالت اصلی */
+  --color-brand: #0F766E;
+  --color-brand-light: #14B8A6;
+  --color-brand-soft: #CCFBF1;
+  --color-ink: #0F172A;
+  --color-canvas: #F8FAFC;
+  --color-income: #10B981;
+  --color-income-soft: #D1FAE5;
+  --color-expense: #F97373;
+  --color-expense-soft: #FFE4E4;
+  --color-night: #0B1120;
+  --color-night-card: #131C2E;
+  --color-night-line: #1E293B;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
+  --shadow-float: 0 10px 30px -8px rgb(15 118 110 / 0.45);
+
+  --animate-sheet-up: sheet-up 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-fade-in: fade-in 200ms ease-out;
+  --animate-pop: pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-rise: rise 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    background: var(--color-canvas);
+  }
+  html.dark {
+    background: var(--color-night);
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased dark:bg-night dark:text-slate-100;
+    overscroll-behavior-y: none;
+    min-height: 100dvh;
+  }
+  /* جلوگیری از بزرگ‌نمایی خودکار Safari: فونت ورودی‌ها حداقل ۱۶ پیکسل */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  button {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-light;
+  }
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}

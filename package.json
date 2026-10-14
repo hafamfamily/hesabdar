@@ -1,0 +1,16 @@
+{
+  "name": "dakhl-o-kharj",
+  "private": true,
+  "version": "0.1.0",
+  "description": "دخل‌وخرج من — مدیریت درآمد و هزینه شخصی (PWA آفلاین‌اول)",
+  "workspaces": [
+    "client"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w client",
+    "build": "npm run build -w client",
+    "preview": "npm run preview -w client",
+    "test": "npm run test -w client",
+    "typecheck": "npm run typecheck -w client"
+  }
+}

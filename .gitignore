@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+# داده و گواهی‌ها هرگز وارد مخزن نشوند
+data/
+certs/
+*.sqlite
+*.sqlite-*
+*.db
+*.pem
+*.key
+.env
+*.tsbuildinfo
