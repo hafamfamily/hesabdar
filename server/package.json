@@ -1,0 +1,20 @@
+{
+  "name": "server",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "description": "سرور محلی «دخل‌وخرج من» روی لپ‌تاپ (Node.js + SQLite)",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/main.js",
+    "set-password": "node --disable-warning=ExperimentalWarning src/cli.js set-password",
+    "devices": "node --disable-warning=ExperimentalWarning src/cli.js devices",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "multicast-dns": "^7.2.5"
+  }
+}

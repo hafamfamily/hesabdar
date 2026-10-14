@@ -1,5 +1,5 @@
 import {
-  Bell, BellRing, CalendarPlus, ChevronLeft, CloudOff, HardDrive, Trash2, Database, Download, FileSpreadsheet, Info, Monitor, Moon, RefreshCw, Server, Sun, Tags, Upload, Wallet,
+  Bell, BellRing, CalendarPlus, ChevronLeft, CloudOff, HardDrive, Trash2, Database, Download, FileSpreadsheet, Info, Monitor, Moon, RefreshCw, Sun, Tags, Upload, Wallet,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
@@ -12,11 +12,12 @@ import { amountInWords, formatAmountInput, formatNumber, parseAmount } from '../
 import { toEnDigits } from '../../lib/digits'
 import { CategoryManager } from './CategoryManager'
 import { FontPicker } from './FontPicker'
+import { ServerSection } from './ServerSection'
 import { Toggle } from '../debts/DebtForm'
 import { buildIcs } from '../../lib/debts'
 import { downloadFile, notificationSupport, requestNotificationPermission } from '../../lib/reminders'
 
-export const APP_VERSION = '0.1.0'
+export const APP_VERSION = '0.3.0'
 
 export function SettingsPage() {
   const store = useStore()
@@ -104,8 +105,8 @@ export function SettingsPage() {
         <FontPicker />
       </Group>
 
-      <Group title="سرور و همگام‌سازی">
-        <Row icon={<Server size={18} />} tint="#0EA5E9" label="وضعیت سرور" value={<Badge>مرحلهٔ سوم</Badge>} onClick={later('مرحلهٔ سوم')} />
+      <Group title="سرور لپ‌تاپ و همگام‌سازی">
+        <ServerSection Row={Row} />
         <Row icon={<CloudOff size={18} />} tint="#64748B" label="آخرین همگام‌سازی" value="—" />
         <Row icon={<Database size={18} />} tint="#F59E0B" label="تغییرات همگام‌نشده" value="—" />
         <div className="p-3">

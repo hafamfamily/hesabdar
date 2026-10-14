@@ -12,14 +12,6 @@
     <meta name="format-detection" content="telephone=no" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <title>دخل‌وخرج من</title>
-    <script>
-      // اعمال تم پیش از رندر برای جلوگیری از چشمک سفید
-      try {
-        var t = localStorage.getItem('dk-theme') || 'system';
-        var d = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
-        if (d) document.documentElement.classList.add('dark');
-      } catch (e) {}
-    </script>
   </head>
   <body>
     <div id="root"></div>
