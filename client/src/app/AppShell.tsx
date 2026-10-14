@@ -1,4 +1,4 @@
-import { BarChart3, Home, ListOrdered, Settings } from 'lucide-react'
+import { BarChart3, HandCoins, Home, ListOrdered, Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cx } from '../components/ui'
 import type { Route } from './router'
@@ -6,11 +6,12 @@ import type { Route } from './router'
 const TABS: { route: Route; label: string; Icon: typeof Home }[] = [
   { route: 'home', label: 'خانه', Icon: Home },
   { route: 'transactions', label: 'تراکنش‌ها', Icon: ListOrdered },
+  { route: 'debts', label: 'اقساط', Icon: HandCoins },
   { route: 'reports', label: 'گزارش‌ها', Icon: BarChart3 },
   { route: 'settings', label: 'تنظیمات', Icon: Settings },
 ]
 
-export function AppShell({ route, onNavigate, children }: { route: Route; onNavigate: (r: Route) => void; children: ReactNode }) {
+export function AppShell({ route, onNavigate, children, badges = {} }: { route: Route; onNavigate: (r: Route) => void; children: ReactNode; badges?: Partial<Record<Route, number>> }) {
   return (
     <div className="mx-auto min-h-dvh max-w-lg">
       <main className="px-4 pt-[max(env(safe-area-inset-top),16px)] pb-[calc(env(safe-area-inset-bottom)+96px)]">{children}</main>
@@ -19,7 +20,7 @@ export function AppShell({ route, onNavigate, children }: { route: Route; onNavi
         aria-label="ناوبری اصلی"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/70 bg-white/85 pb-safe backdrop-blur-xl dark:border-night-line dark:bg-night/85"
       >
-        <div className="mx-auto grid max-w-lg grid-cols-4">
+        <div className="mx-auto grid max-w-lg grid-cols-5">
           {TABS.map(({ route: r, label, Icon }) => {
             const active = r === route
             return (
@@ -33,8 +34,13 @@ export function AppShell({ route, onNavigate, children }: { route: Route; onNavi
                   active ? 'text-brand dark:text-brand-light' : 'text-slate-400',
                 )}
               >
-                <span className={cx('grid h-7 w-12 place-items-center rounded-full transition', active && 'bg-brand/10 dark:bg-brand-light/10')}>
+                <span className={cx('relative grid h-7 w-12 place-items-center rounded-full transition', active && 'bg-brand/10 dark:bg-brand-light/10')}>
                   <Icon size={21} strokeWidth={active ? 2.4 : 2} />
+                  {!!badges[r] && (
+                    <span className="absolute -top-1 left-1 grid h-4 min-w-4 place-items-center rounded-full bg-expense px-1 text-[10px] font-bold text-white">
+                      {String(badges[r]).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)])}
+                    </span>
+                  )}
                 </span>
                 {label}
               </button>

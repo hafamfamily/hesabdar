@@ -1,26 +1,40 @@
+import type { ReactNode } from 'react'
 import { AppShell } from './app/AppShell'
-import { useRoute } from './app/router'
+import { type Route, useRoute } from './app/router'
 import { UIProvider } from './app/ui-context'
+import { useDueReminders } from './app/useReminders'
 import { StoreProvider } from './data/store'
 import { Dashboard } from './features/dashboard/Dashboard'
+import { DebtsPage } from './features/debts/DebtsPage'
 import { ReportsPage } from './features/reports/ReportsPage'
 import { SettingsPage } from './features/settings/SettingsPage'
 import { TransactionsPage } from './features/transactions/TransactionsPage'
 
 export default function App() {
-  const [route, go] = useRoute()
   return (
     <StoreProvider>
       <UIProvider>
-        <AppShell route={route} onNavigate={go}>
-          <div key={route} className="animate-fade-in">
-            {route === 'home' && <Dashboard onNavigate={go} />}
-            {route === 'transactions' && <TransactionsPage />}
-            {route === 'reports' && <ReportsPage />}
-            {route === 'settings' && <SettingsPage />}
-          </div>
-        </AppShell>
+        <Main />
       </UIProvider>
     </StoreProvider>
+  )
+}
+
+function Main() {
+  const [route, go] = useRoute()
+  const due = useDueReminders()
+  const pages: Record<Route, ReactNode> = {
+    home: <Dashboard onNavigate={go} />,
+    transactions: <TransactionsPage />,
+    debts: <DebtsPage />,
+    reports: <ReportsPage />,
+    settings: <SettingsPage />,
+  }
+  return (
+    <AppShell route={route} onNavigate={go} badges={{ debts: due.length }}>
+      <div key={route} className="animate-fade-in">
+        {pages[route]}
+      </div>
+    </AppShell>
   )
 }

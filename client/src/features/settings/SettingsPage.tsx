@@ -1,5 +1,5 @@
 import {
-  ChevronLeft, CloudOff, Database, Download, FileSpreadsheet, Info, Monitor, Moon, RefreshCw, Server, Sun, Tags, Upload, Wallet,
+  Bell, BellRing, CalendarPlus, ChevronLeft, CloudOff, Database, Download, FileSpreadsheet, Info, Monitor, Moon, RefreshCw, Server, Sun, Tags, Upload, Wallet,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
@@ -11,6 +11,9 @@ import type { ThemePref } from '../../data/types'
 import { amountInWords, formatAmountInput, formatNumber, parseAmount } from '../../lib/money'
 import { toEnDigits } from '../../lib/digits'
 import { CategoryManager } from './CategoryManager'
+import { Toggle } from '../debts/DebtForm'
+import { buildIcs } from '../../lib/debts'
+import { downloadFile, notificationSupport, requestNotificationPermission } from '../../lib/reminders'
 
 export const APP_VERSION = '0.1.0'
 
@@ -19,6 +22,22 @@ export function SettingsPage() {
   const ui = useUI()
   const [balanceOpen, setBalanceOpen] = useState(false)
   const [catsOpen, setCatsOpen] = useState(false)
+  const [perm, setPerm] = useState(notificationSupport())
+  const notifHint =
+    perm === 'unsupported'
+      ? 'در این مرورگر پشتیبانی نمی‌شود؛ ابتدا برنامه را به صفحهٔ اصلی آیفون اضافه کنید'
+      : perm === 'denied'
+        ? 'اجازه رد شده است؛ از تنظیمات آیفون فعال کنید'
+        : 'هنگام باز کردن برنامه، اقساط نزدیک اعلام می‌شوند'
+  const toggleSystemNotif = async (v: boolean) => {
+    if (!v) return store.setReminders({ systemNotifications: false })
+    const p = perm === 'granted' ? 'granted' : await requestNotificationPermission()
+    setPerm(p)
+    if (p === 'granted') {
+      await store.setReminders({ systemNotifications: true })
+      ui.toast('اعلان سیستمی فعال شد')
+    } else ui.toast(p === 'unsupported' ? 'این دستگاه/مرورگر از اعلان وب پشتیبانی نمی‌کند' : 'اجازهٔ اعلان داده نشد', 'error')
+  }
   const later = (stage: string) => () => ui.toast(`این قابلیت در ${stage} فعال می‌شود`, 'info')
 
   return (
@@ -28,6 +47,35 @@ export function SettingsPage() {
       <Group title="حساب">
         <Row icon={<Wallet size={18} />} tint="#0F766E" label="موجودی اولیه" value={`${formatNumber(store.settings.openingBalance)} تومان`} onClick={() => setBalanceOpen(true)} />
         <Row icon={<Tags size={18} />} tint="#6366F1" label="مدیریت دسته‌بندی‌ها" onClick={() => setCatsOpen(true)} />
+      </Group>
+
+      <Group title="یادآوری اقساط">
+        <ToggleRow
+          icon={<Bell size={18} />}
+          tint="#F59E0B"
+          label="یادآوری داخل برنامه"
+          hint="نمایش اقساط نزدیک و نشان عددی روی آیکون"
+          checked={store.settings.reminders.enabled}
+          onChange={(v) => store.setReminders({ enabled: v })}
+        />
+        <ToggleRow
+          icon={<BellRing size={18} />}
+          tint="#EF4444"
+          label="اعلان سیستمی"
+          hint={notifHint}
+          checked={store.settings.reminders.systemNotifications}
+          onChange={toggleSystemNotif}
+        />
+        <Row
+          icon={<CalendarPlus size={18} />}
+          tint="#6366F1"
+          label="افزودن همهٔ سررسیدها به تقویم"
+          onClick={() => {
+            const ics = buildIcs(store.debts.filter((d) => d.reminder.enabled), formatNumber)
+            if (!ics.includes('BEGIN:VEVENT')) return ui.toast('قسط پرداخت‌نشده‌ای با یادآوری فعال وجود ندارد', 'info')
+            downloadFile('aqsat.ics', ics, 'text/calendar')
+          }}
+        />
       </Group>
 
       <Group title="ظاهر">
@@ -96,6 +144,21 @@ function Row({ icon, tint, label, value, onClick }: { icon: ReactNode; tint: str
       {value && <span className="text-[14px] text-slate-400 tabular-nums">{value}</span>}
       {onClick && <ChevronLeft size={18} className="text-slate-300 dark:text-slate-600" />}
     </Tag>
+  )
+}
+
+function ToggleRow({ icon, tint, label, hint, checked, onChange }: { icon: ReactNode; tint: string; label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex min-h-14 items-center gap-3 px-3 py-2">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl text-white" style={{ background: tint }}>
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-medium">{label}</span>
+        {hint && <span className="block text-[12px] leading-5 text-slate-400">{hint}</span>}
+      </span>
+      <Toggle label={label} checked={checked} onChange={onChange} />
+    </div>
   )
 }
 

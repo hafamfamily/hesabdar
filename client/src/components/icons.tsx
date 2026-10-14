@@ -1,6 +1,6 @@
 import {
   Briefcase, Car, CircleEllipsis, Coins, Film, Gift, GraduationCap, HeartPulse, Home, PartyPopper,
-  Plane, Receipt, Shirt, ShoppingBasket, Smartphone, Sparkles, Utensils, Wallet, Coffee, Dumbbell,
+  Plane, Receipt, Landmark, TrendingUp, HandCoins, Baby, PawPrint, Fuel, Shirt, ShoppingBasket, Smartphone, Sparkles, Utensils, Wallet, Coffee, Dumbbell,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -25,6 +25,12 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   wallet: Wallet,
   coffee: Coffee,
   gym: Dumbbell,
+  landmark: Landmark,
+  trend: TrendingUp,
+  handcoins: HandCoins,
+  baby: Baby,
+  pet: PawPrint,
+  fuel: Fuel,
 }
 
 export function CategoryIcon({ icon, color, size = 'md' }: { icon: string; color: string; size?: 'sm' | 'md' | 'lg' }) {

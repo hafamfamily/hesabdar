@@ -1,8 +1,10 @@
-import { ArrowDownLeft, ArrowUpRight, ChevronLeft, Eye, EyeOff, Plus, Receipt, Wallet } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, BellRing, ChevronLeft, Eye, EyeOff, Plus, Receipt, Wallet } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
 import type { Route } from '../../app/router'
 import { useUI } from '../../app/ui-context'
+import { useDueList } from '../../app/useReminders'
+import { describeDays } from '../../lib/debts'
 import { IncomeExpenseBars } from '../../components/charts'
 import { SyncBadge } from '../../components/SyncBadge'
 import { Card, EmptyState, SectionHeader, cx } from '../../components/ui'
@@ -18,6 +20,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
   const catMap = useCategoryMap()
   const ui = useUI()
   const [hidden, setHidden] = useState(false)
+  const due = useDueList()
   const today = todayIso()
 
   const all = useMemo(() => totals(transactions), [transactions])
@@ -79,6 +82,31 @@ export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
         </span>
         ثبت تراکنش
       </button>
+
+      {/* یادآوری اقساط */}
+      {due.length > 0 && (
+        <button
+          type="button"
+          onClick={() => onNavigate('debts')}
+          className="block w-full animate-rise rounded-3xl bg-amber-50 p-4 text-start ring-1 ring-amber-200 dark:bg-amber-400/10 dark:ring-amber-400/20"
+        >
+          <p className="mb-2 flex items-center gap-2 text-[14px] font-bold text-amber-800 dark:text-amber-200">
+            <BellRing size={17} /> یادآوری اقساط
+            <ChevronLeft size={16} className="ms-auto" />
+          </p>
+          <ul className="space-y-1.5">
+            {due.slice(0, 3).map((i) => (
+              <li key={i.installment.id} className="flex items-center gap-2 text-[13px] text-amber-900 dark:text-amber-100">
+                <span className="flex-1 truncate">
+                  {i.debt.direction === 'borrowed' ? 'پرداخت قسط' : 'دریافت از'} {i.debt.counterparty}
+                </span>
+                <span className="font-semibold tabular-nums">{formatNumber(i.installment.amount)}</span>
+                <span className={cx('w-20 text-left text-[11px] font-bold', i.days < 0 ? 'text-red-600 dark:text-expense' : '')}>{describeDays(i.days)}</span>
+              </li>
+            ))}
+          </ul>
+        </button>
+      )}
 
       {/* خلاصه ماه جاری */}
       <Card className="animate-rise">

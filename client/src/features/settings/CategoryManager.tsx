@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, Check, Pencil, Plus } from 'lucide-react'
+import { Archive, ArchiveRestore, Check, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useUI } from '../../app/ui-context'
 import { CATEGORY_ICONS, CategoryIcon } from '../../components/icons'
@@ -16,6 +16,7 @@ export function CategoryManager({ open, onClose }: { open: boolean; onClose: () 
   const [type, setType] = useState<TxType>('expense')
   const cats = useCategories(type, true)
   const [editing, setEditing] = useState<Partial<Category> | null>(null)
+  const [deleting, setDeleting] = useState<Category | null>(null)
   const store = useStore()
   const ui = useUI()
 
@@ -30,7 +31,7 @@ export function CategoryManager({ open, onClose }: { open: boolean; onClose: () 
 
   return (
     <>
-      <Sheet open={open && !editing} onClose={onClose} title="دسته‌بندی‌ها">
+      <Sheet open={open && !editing && !deleting} onClose={onClose} title="دسته‌بندی‌ها">
         <Segmented
           value={type}
           onChange={setType}
@@ -51,6 +52,9 @@ export function CategoryManager({ open, onClose }: { open: boolean; onClose: () 
               <button type="button" aria-label={`ویرایش ${c.name}`} onClick={() => setEditing(c)} className="grid size-9 place-items-center rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5">
                 <Pencil size={16} />
               </button>
+              <button type="button" aria-label={`حذف ${c.name}`} onClick={() => setDeleting(c)} className="grid size-9 place-items-center rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5">
+                <Trash2 size={16} />
+              </button>
               <button
                 type="button"
                 aria-label={c.archived ? `فعال‌سازی ${c.name}` : `بایگانی ${c.name}`}
@@ -68,6 +72,7 @@ export function CategoryManager({ open, onClose }: { open: boolean; onClose: () 
       </Sheet>
 
       {editing && <CategoryEditor initial={editing} onClose={() => setEditing(null)} />}
+      {deleting && <CategoryDelete cat={deleting} onClose={() => setDeleting(null)} />}
     </>
   )
 }
@@ -138,6 +143,68 @@ function CategoryEditor({ initial, onClose }: { initial: Partial<Category>; onCl
           </button>
         ))}
       </div>
+    </Sheet>
+  )
+}
+
+/** حذف دسته؛ اگر در تراکنش‌ها استفاده شده باشد، کاربر دستهٔ جایگزین را انتخاب می‌کند */
+function CategoryDelete({ cat, onClose }: { cat: Category; onClose: () => void }) {
+  const store = useStore()
+  const ui = useUI()
+  const used = store.transactions.filter((t) => t.categoryId === cat.id).length
+  const others = store.categories.filter((c) => c.type === cat.type && c.id !== cat.id && !c.archived)
+  const [moveTo, setMoveTo] = useState(others.find((c) => c.order === 99)?.id ?? others[0]?.id ?? '')
+
+  const remove = async () => {
+    if (others.length === 0) return ui.toast('حداقل یک دسته باید باقی بماند', 'error')
+    try {
+      await store.deleteCategory(cat.id, used ? moveTo : undefined)
+      ui.toast('دسته حذف شد')
+      onClose()
+    } catch (e) {
+      ui.toast(e instanceof Error ? e.message : 'خطا', 'error')
+    }
+  }
+
+  return (
+    <Sheet
+      open
+      onClose={onClose}
+      title={`حذف «${cat.name}»`}
+      footer={
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={onClose}>
+            انصراف
+          </Button>
+          <Button className="flex-1 !bg-red-500 !shadow-none" onClick={remove}>
+            <Trash2 size={18} /> حذف دسته
+          </Button>
+        </div>
+      }
+    >
+      {used > 0 ? (
+        <>
+          <p className="mb-3 text-[14px] leading-7 text-slate-600 dark:text-slate-300">
+            این دسته در <b>{String(used).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)])}</b> تراکنش استفاده شده است. این تراکنش‌ها به کدام دسته منتقل شوند؟
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {others.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setMoveTo(c.id)}
+                className={cx('flex items-center gap-2 rounded-2xl p-2 text-[14px]', moveTo === c.id ? 'bg-white ring-2 ring-brand dark:bg-night-card' : 'bg-white/60 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/5')}
+              >
+                <CategoryIcon icon={c.icon} color={c.color} size="sm" />
+                <span className="truncate">{c.name}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-4 text-[12px] text-slate-400">اگر فقط می‌خواهید دسته در فرم ثبت نمایش داده نشود، به‌جای حذف از «بایگانی» استفاده کنید.</p>
+        </>
+      ) : (
+        <p className="text-[14px] leading-7 text-slate-600 dark:text-slate-300">این دسته در هیچ تراکنشی استفاده نشده و بدون مشکل حذف می‌شود.</p>
+      )}
     </Sheet>
   )
 }
