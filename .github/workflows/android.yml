@@ -4,7 +4,7 @@ name: Android APK
 
 on:
   push:
-    branches: [claude/phase-1-ui]
+    branches: [main, claude/phase-1-ui]
     paths: ['client/**', '.github/workflows/android.yml', 'package-lock.json']
   workflow_dispatch:
 

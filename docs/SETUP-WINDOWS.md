@@ -12,9 +12,9 @@
 
 - **روش پیشنهادی (برای به‌روزرسانی آسان):** اگر Git نصب است، در پوشهٔ دلخواه دستور زیر را اجرا کنید:
   ```
-  git clone -b claude/phase-1-ui https://github.com/shdidehvar/peos.git C:\DakhlKharj\app
+  git clone https://github.com/hafamfamily/hesabdar.git C:\DakhlKharj\app
   ```
-- **یا:** صفحهٔ مخزن را در GitHub باز کنید، شاخهٔ `claude/phase-1-ui` را انتخاب کنید، **Code** ← **Download ZIP**، و فایل را در یک پوشهٔ ثابت مثل `C:\DakhlKharj\app` باز کنید.
+- **یا:** صفحهٔ مخزن (https://github.com/hafamfamily/hesabdar) را در GitHub باز کنید، **Code** ← **Download ZIP**، و فایل را در یک پوشهٔ ثابت مثل `C:\DakhlKharj\app` باز کنید.
    پوشهٔ برنامه با پوشهٔ داده (`D:\DakhlKharj\data`) فرق دارد؛ این دو را یکی نکنید.
 
 ## ۲. نصب (یک بار)
