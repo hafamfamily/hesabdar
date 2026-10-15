@@ -1,5 +1,5 @@
 import {
-  Bell, BellRing, CalendarPlus, ChevronLeft, HardDrive, Trash2, Download, FileSpreadsheet, Info, Monitor, Moon, Sun, Tags, Upload, Wallet,
+  Bell, BellRing, CalendarPlus, ChevronLeft, HardDrive, Trash2, Info, Monitor, Moon, Sun, Tags, Wallet,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
@@ -14,11 +14,13 @@ import { CategoryManager } from './CategoryManager'
 import { FontPicker } from './FontPicker'
 import { ServerSection } from './ServerSection'
 import { SyncSection } from './SyncSection'
+import { DataSection } from './DataSection'
 import { Toggle } from '../debts/DebtForm'
 import { buildIcs } from '../../lib/debts'
-import { downloadFile, notificationSupport, requestNotificationPermission } from '../../lib/reminders'
+import { notificationSupport, requestNotificationPermission } from '../../lib/reminders'
+import { saveFile } from '../../lib/download'
 
-export const APP_VERSION = '0.4.0'
+export const APP_VERSION = '0.5.0'
 
 export function SettingsPage() {
   const store = useStore()
@@ -56,7 +58,6 @@ export function SettingsPage() {
       ui.toast(e instanceof Error ? e.message : 'خطا', 'error')
     }
   }
-  const later = (stage: string) => () => ui.toast(`این قابلیت در ${stage} فعال می‌شود`, 'info')
 
   return (
     <div>
@@ -91,7 +92,7 @@ export function SettingsPage() {
           onClick={() => {
             const ics = buildIcs(store.debts.filter((d) => d.reminder.enabled), formatNumber)
             if (!ics.includes('BEGIN:VEVENT')) return ui.toast('قسط پرداخت‌نشده‌ای با یادآوری فعال وجود ندارد', 'info')
-            downloadFile('aqsat.ics', ics, 'text/calendar')
+            saveFile('aqsat.ics', ics, 'text/calendar')
           }}
         />
       </Group>
@@ -112,9 +113,7 @@ export function SettingsPage() {
       </Group>
 
       <Group title="داده‌ها">
-        <Row icon={<Download size={18} />} tint="#10B981" label="تهیهٔ نسخهٔ پشتیبان (JSON)" onClick={later('مرحلهٔ پنجم')} />
-        <Row icon={<Upload size={18} />} tint="#F97316" label="بازیابی از فایل پشتیبان" onClick={later('مرحلهٔ پنجم')} />
-        <Row icon={<FileSpreadsheet size={18} />} tint="#0F766E" label="خروجی Excel / CSV" onClick={later('مرحلهٔ پنجم')} />
+        <DataSection Row={Row} appVersion={APP_VERSION} />
         <Row
           icon={<HardDrive size={18} />}
           tint="#64748B"

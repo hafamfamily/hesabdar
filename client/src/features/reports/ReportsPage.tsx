@@ -15,6 +15,8 @@ import {
 } from '../../lib/jalali'
 import { toFaDigits } from '../../lib/digits'
 import { formatCompact, formatNumber } from '../../lib/money'
+import { transactionsCsv } from '../../lib/csv'
+import { saveFile } from '../../lib/download'
 
 type Period = 'day' | 'week' | 'month' | 'custom'
 
@@ -101,7 +103,11 @@ export function ReportsPage() {
         action={
           <button
             type="button"
-            onClick={() => ui.toast('خروجی CSV در مرحلهٔ پنجم فعال می‌شود', 'info')}
+            onClick={async () => {
+              const name = `dakhl-o-kharj-${range.start}_${range.end}.csv`
+              const r = await saveFile(name, transactionsCsv(inPeriod, categories), 'text/csv;charset=utf-8')
+              if (r !== 'cancelled') ui.toast(`${toFaDigits(inPeriod.length)} تراکنش این دوره در فایل CSV ذخیره شد`)
+            }}
             className="flex h-10 items-center gap-1.5 rounded-2xl bg-white px-3 text-[13px] font-semibold text-brand ring-1 ring-slate-200 dark:bg-night-card dark:text-brand-light dark:ring-white/5"
           >
             <FileSpreadsheet size={17} /> خروجی Excel

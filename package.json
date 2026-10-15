@@ -1,7 +1,7 @@
 {
   "name": "dakhl-o-kharj",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "دخل‌وخرج من — مدیریت درآمد و هزینه شخصی (PWA آفلاین‌اول)",
   "workspaces": [
     "client",

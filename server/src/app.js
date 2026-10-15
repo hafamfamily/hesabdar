@@ -3,9 +3,10 @@ import express from 'express'
 import { existsSync } from 'node:fs'
 import { checkPassword, createDevice, deviceForToken, hasPassword, listDevices, LoginLimiter, revokeDevice, setPassword } from './auth.js'
 import { applyOps, changesSince, stats } from './records.js'
+import { backupNow, lastBackup } from './backup.js'
 import { isLoopback, isPrivateIp, normalizeIp } from './net.js'
 
-export const VERSION = '0.3.0'
+export const VERSION = '0.5.0'
 
 /**
  * @param {object} o
@@ -90,7 +91,16 @@ export function createApp({ db, config, status = () => ({}), remoteAddress = (re
     next()
   })
 
-  api.get('/status', (_req, res) => res.json({ ...stats(db), device: res.locals.device, ...status() }))
+  api.get('/status', (_req, res) => res.json({ ...stats(db), device: res.locals.device, lastBackup: lastBackup(db), backupDir: config.backupDir, ...status() }))
+
+  api.post('/backup', (_req, res) => {
+    try {
+      res.json(backupNow(db, config.backupDir))
+    } catch (e) {
+      console.error('[backup]', e)
+      res.status(500).json({ error: 'پشتیبان‌گیری روی لپ‌تاپ انجام نشد؛ دسترسی به پوشهٔ پشتیبان را بررسی کنید' })
+    }
+  })
 
   api.get('/devices', (_req, res) => res.json({ devices: listDevices(db), current: res.locals.device.id }))
   api.delete('/devices/:id', (req, res) => {

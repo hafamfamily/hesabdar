@@ -116,3 +116,23 @@ export function guessDeviceName(): string {
   if (/Windows/.test(ua)) return 'لپ‌تاپ ویندوز'
   return 'دستگاه'
 }
+
+export interface ServerStatus {
+  rev: number
+  counts: Record<string, number>
+  lastBackup?: { at: string; file: string } | null
+  backupDir?: string
+}
+
+export async function serverStatus(): Promise<ServerStatus> {
+  const p = await getPairing()
+  if (!p) throw new ServerError('این دستگاه جفت نشده است', 401)
+  return call('/status', { token: p.token })
+}
+
+/** پشتیبان‌گیری فوری از پایگاه دادهٔ سرور در پوشهٔ پشتیبان لپ‌تاپ */
+export async function serverBackupNow(): Promise<{ at: string; file: string }> {
+  const p = await getPairing()
+  if (!p) throw new ServerError('این دستگاه جفت نشده است', 401)
+  return call('/backup', { method: 'POST', token: p.token })
+}

@@ -9,7 +9,7 @@ import { buildIcs, debtStatus, describeDays } from '../../lib/debts'
 import { toFaDigits } from '../../lib/digits'
 import { diffDays, formatJLong, formatJNumeric, todayIso } from '../../lib/jalali'
 import { formatAmountInput, formatNumber, parseAmount } from '../../lib/money'
-import { downloadFile } from '../../lib/reminders'
+import { saveFile } from '../../lib/download'
 import { Toggle } from './DebtForm'
 
 export function DebtDetail({ debtId, onClose, onEdit }: { debtId: string; onClose: () => void; onEdit: () => void }) {
@@ -51,7 +51,7 @@ export function DebtDetail({ debtId, onClose, onEdit }: { debtId: string; onClos
   const exportIcs = () => {
     const ics = buildIcs([debt], formatNumber)
     if (!ics.includes('BEGIN:VEVENT')) return ui.toast('قسط پرداخت‌نشده‌ای وجود ندارد', 'info')
-    downloadFile(`aqsat-${debt.counterparty}.ics`, ics, 'text/calendar')
+    saveFile(`aqsat-${debt.counterparty}.ics`, ics, 'text/calendar')
   }
 
   return (

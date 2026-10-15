@@ -163,3 +163,20 @@ describe('اعتبارسنجی', () => {
     assert.notEqual(validateRecord('debts', 'd', { ...debt, installments: [] }), null)
   })
 })
+
+describe('پشتیبان سرور', () => {
+  it('پشتیبان کامل و قابل باز شدن با نگه‌داشتن ۳۰ نسخه', async () => {
+    const { backupNow, lastBackup } = await import('../src/backup.js')
+    const { DatabaseSync } = await import('node:sqlite')
+    const { readdirSync } = await import('node:fs')
+    const bdir = join(dir, 'backups')
+    const r = backupNow(db, bdir)
+    const copy = new DatabaseSync(r.file, { readOnly: true })
+    const n = copy.prepare('SELECT COUNT(*) AS n FROM records').get().n
+    copy.close()
+    assert.ok(n >= 1, 'پشتیبان باید داده‌ها را داشته باشد')
+    assert.equal(lastBackup(db).file, r.file)
+    for (let i = 0; i < 3; i++) backupNow(db, bdir)
+    assert.ok(readdirSync(bdir).length <= 30)
+  })
+})

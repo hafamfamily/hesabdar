@@ -12,6 +12,7 @@ import { openDatabase } from './db.js'
 import { startMdns } from './mdns.js'
 import { lanAddresses } from './net.js'
 import { startSetupServer } from './setup-page.js'
+import { scheduleBackups } from './backup.js'
 
 const config = loadConfig()
 const db = openDatabase(config.dataDir)
@@ -33,6 +34,7 @@ const line = '-'.repeat(60)
 console.log(line)
 console.log(`Dakhl-o-Kharj server v${VERSION}`)
 console.log(`Data folder : ${config.dataDir}`)
+console.log(`Backups     : ${config.backupDir}  (daily while running, last 30 kept)`)
 
 if (tls) {
   const server = createHttps({ cert: readFileSync(certFile), key: readFileSync(keyFile), minVersion: 'TLSv1.2' }, app)
@@ -54,6 +56,7 @@ if (tls) {
 }
 if (!hasPassword(db)) console.log('No server password yet: open the app on this laptop > Settings > Server, or run: npm run set-password')
 console.log(line)
+scheduleBackups(db, config.backupDir, (m) => console.log(m))
 
 const shutdown = () => {
   try {

@@ -15,6 +15,7 @@ export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
  * @property {boolean} mdns     انتشار نام در شبکه
  * @property {boolean} allowAnyNetwork اجازهٔ دسترسی از خارج شبکهٔ خصوصی (پیش‌فرض: خیر)
  * @property {string} clientDir پوشهٔ فایل‌های ساخته‌شدهٔ برنامه
+ * @property {string} backupDir پوشهٔ پشتیبان‌های خودکار پایگاه داده
  */
 
 function defaultDataDir() {
@@ -45,6 +46,7 @@ export function loadConfig(overrides = {}) {
     mdns: true,
     allowAnyNetwork: false,
     clientDir: join(ROOT, 'client', 'dist'),
+    backupDir: '',
     ...fromFile,
     ...(env.DAKHL_DATA_DIR ? { dataDir: env.DAKHL_DATA_DIR } : {}),
     ...(env.DAKHL_PORT ? { port: Number(env.DAKHL_PORT) } : {}),
@@ -52,6 +54,8 @@ export function loadConfig(overrides = {}) {
   }
   cfg.dataDir = resolve(cfg.dataDir)
   cfg.clientDir = resolve(cfg.clientDir)
+  cfg.backupDir = resolve(cfg.backupDir || join(dirname(cfg.dataDir), 'backups'))
+  if (cfg.backupDir.startsWith(cfg.clientDir)) throw new Error('پوشهٔ پشتیبان نمی‌تواند داخل پوشهٔ برنامه باشد')
   // پوشهٔ داده نباید داخل پوشهٔ فایل‌های عمومی برنامه باشد
   if (cfg.dataDir.startsWith(cfg.clientDir)) throw new Error('پوشهٔ داده نمی‌تواند داخل پوشهٔ برنامه باشد')
   if (!/^[a-z0-9-]+\.local$/i.test(cfg.hostname)) throw new Error('hostname باید به شکل name.local باشد')

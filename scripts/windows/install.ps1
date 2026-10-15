@@ -27,7 +27,17 @@ $appFolder = Split-Path $dataDir -Parent
 icacls $appFolder /inheritance:r /grant:r "$($env:USERNAME):(OI)(CI)F" "SYSTEM:(OI)(CI)F" "Administrators:(OI)(CI)F" | Out-Null
 Write-Ok "Data folder: $dataDir (access limited to $($env:USERNAME))"
 
-$cfg = [ordered]@{ dataDir = $dataDir; port = 8443; setupPort = 8080; hostname = 'dakhlkharj.local' }
+Write-Step 'Backup folder'
+$defaultBackup = Join-Path $appFolder 'backups'
+$answer = Read-Host "    Folder for automatic daily backups [$defaultBackup]"
+$backupDir = if ([string]::IsNullOrWhiteSpace($answer)) { $defaultBackup } else { $answer.Trim() }
+New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
+if (-not $backupDir.StartsWith($appFolder)) {
+  icacls $backupDir /inheritance:r /grant:r "$($env:USERNAME):(OI)(CI)F" "SYSTEM:(OI)(CI)F" "Administrators:(OI)(CI)F" | Out-Null
+}
+Write-Ok "Backups: $backupDir"
+
+$cfg = [ordered]@{ dataDir = $dataDir; backupDir = $backupDir; port = 8443; setupPort = 8080; hostname = 'dakhlkharj.local' }
 $cfg | ConvertTo-Json | Set-Content -Path $ConfigFile -Encoding UTF8
 Write-Ok "Settings saved to config.json"
 
