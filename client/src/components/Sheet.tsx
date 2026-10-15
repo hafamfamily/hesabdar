@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 /** برگهٔ پایینی (Bottom Sheet) مناسب استفاده با یک دست */
 export function Sheet({
@@ -30,7 +31,8 @@ export function Sheet({
   }, [open, onClose])
 
   if (!open) return null
-  return (
+  // پورتال به body: والدهای دارای انیمیشن transform موقعیت fixed را به هم می‌زنند
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 animate-fade-in bg-slate-900/40 backdrop-blur-[2px]" onClick={onClose} />
       <div
@@ -52,6 +54,7 @@ export function Sheet({
         <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4">{children}</div>
         {footer && <div className="border-t border-slate-200/70 px-5 pt-3 pb-[max(env(safe-area-inset-bottom),12px)] dark:border-night-line">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

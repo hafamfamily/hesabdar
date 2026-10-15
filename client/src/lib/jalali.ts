@@ -134,3 +134,11 @@ export function formatRelativeDay(iso: IsoDate, today: IsoDate = todayIso()): st
   const base = `${WEEKDAYS[weekdayIndex(iso)]} ${formatJDayMonth(iso)}`
   return jy === toJ(today).jy ? base : `${base} ${toFaDigits(jy)}`
 }
+
+/** زمان (ISO) به‌صورت «امروز، ۱۴:۰۵» یا «دیروز، ۰۹:۳۰» بر اساس ساعت محلی */
+export function formatDateTime(isoTimestamp: string, now: Date = new Date()): string {
+  const d = new Date(isoTimestamp)
+  if (Number.isNaN(d.getTime())) return '—'
+  const hm = toFaDigits(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
+  return `${formatRelativeDay(todayIso(d), todayIso(now))}، ${hm}`
+}

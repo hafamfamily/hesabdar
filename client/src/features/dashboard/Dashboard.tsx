@@ -42,7 +42,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (r: Route) => void }) {
       <PageHeader
         title="دخل‌وخرج من"
         subtitle={`${WEEKDAYS[weekdayIndex(today)]}، ${formatJLong(today)}`}
-        action={<SyncBadge />}
+        action={<SyncBadge onClick={() => onNavigate('settings')} />}
       />
 
       {/* شروع کار: وقتی هنوز داده‌ای ثبت نشده */}

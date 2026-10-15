@@ -1,5 +1,5 @@
 import {
-  Bell, BellRing, CalendarPlus, ChevronLeft, CloudOff, HardDrive, Trash2, Database, Download, FileSpreadsheet, Info, Monitor, Moon, RefreshCw, Sun, Tags, Upload, Wallet,
+  Bell, BellRing, CalendarPlus, ChevronLeft, HardDrive, Trash2, Download, FileSpreadsheet, Info, Monitor, Moon, Sun, Tags, Upload, Wallet,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
@@ -13,11 +13,12 @@ import { toEnDigits } from '../../lib/digits'
 import { CategoryManager } from './CategoryManager'
 import { FontPicker } from './FontPicker'
 import { ServerSection } from './ServerSection'
+import { SyncSection } from './SyncSection'
 import { Toggle } from '../debts/DebtForm'
 import { buildIcs } from '../../lib/debts'
 import { downloadFile, notificationSupport, requestNotificationPermission } from '../../lib/reminders'
 
-export const APP_VERSION = '0.3.0'
+export const APP_VERSION = '0.4.0'
 
 export function SettingsPage() {
   const store = useStore()
@@ -43,7 +44,7 @@ export function SettingsPage() {
   const wipe = async () => {
     const ok = await ui.confirm({
       title: 'حذف همهٔ داده‌ها',
-      message: 'همهٔ تراکنش‌ها، بدهی‌ها، دسته‌های ساخته‌شده و تنظیمات از این دستگاه پاک می‌شوند. این کار برگشت‌پذیر نیست.',
+      message: 'همهٔ داده‌های این دستگاه پاک و اتصال آن به سرور قطع می‌شود. داده‌های روی سرور لپ‌تاپ حذف نمی‌شوند و با اتصال دوباره برمی‌گردند. داده‌هایی که هنوز همگام نشده‌اند از بین می‌روند.',
       confirmLabel: 'حذف همه',
       danger: true,
     })
@@ -107,13 +108,7 @@ export function SettingsPage() {
 
       <Group title="سرور لپ‌تاپ و همگام‌سازی">
         <ServerSection Row={Row} />
-        <Row icon={<CloudOff size={18} />} tint="#64748B" label="آخرین همگام‌سازی" value="—" />
-        <Row icon={<Database size={18} />} tint="#F59E0B" label="تغییرات همگام‌نشده" value="—" />
-        <div className="p-3">
-          <Button variant="secondary" className="w-full" onClick={later('مرحلهٔ چهارم')}>
-            <RefreshCw size={18} /> همگام‌سازی اکنون
-          </Button>
-        </div>
+        <SyncSection Row={Row} />
       </Group>
 
       <Group title="داده‌ها">
@@ -132,7 +127,7 @@ export function SettingsPage() {
             )
           }
         />
-        <Row icon={<Trash2 size={18} />} tint="#EF4444" label="حذف همهٔ داده‌ها" onClick={wipe} />
+        <Row icon={<Trash2 size={18} />} tint="#EF4444" label="حذف همهٔ داده‌های این دستگاه" onClick={wipe} />
       </Group>
 
       <Group title="درباره">

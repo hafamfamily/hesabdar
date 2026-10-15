@@ -1,4 +1,5 @@
 import { db } from '../data/store'
+import { resetSyncState } from '../data/sync'
 
 /**
  * ارتباط با سرور لپ‌تاپ.
@@ -73,11 +74,14 @@ export function setupPassword(password: string) {
 }
 
 export async function pair(password: string, deviceName: string): Promise<Pairing> {
+  if ((await db.kv.get('has-sample-data'))?.value)
+    throw new ServerError('روی این دستگاه دادهٔ نمونه هست. ابتدا از «تنظیمات ← حذف همهٔ داده‌های این دستگاه» آن را پاک کنید تا به داده‌های واقعی اضافه نشود.', 400)
   const r = await call<{ token: string; deviceId: string; name: string }>('/auth/pair', {
     method: 'POST',
     body: JSON.stringify({ password, deviceName }),
   })
   const p: Pairing = { token: r.token, deviceId: r.deviceId, deviceName: r.name, pairedAt: new Date().toISOString() }
+  await resetSyncState(db)
   await db.kv.put({ key: 'server-pairing', value: p })
   return p
 }
