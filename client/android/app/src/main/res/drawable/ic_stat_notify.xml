@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- آیکون کوچک اعلان (باید تک‌رنگ سفید باشد) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M5,5h14a3,3 0,0 1,3 3v8a3,3 0,0 1,-3 3H5a3,3 0,0 1,-3 -3V8a3,3 0,0 1,3 -3zM4,9v7a1,1 0,0 0,1 1h14a1,1 0,0 0,1 -1V9H4zM16.5,12.5a1.5,1.5 0,1 1,0 3a1.5,1.5 0,1 1,0 -3z"/>
+</vector>

@@ -2,6 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
+import { isNative } from './lib/platform'
+import { setupAndroidBackButton } from './lib/backButton'
 
 // اعمال تم پیش از نخستین رندر (بدون اسکریپت درون‌خطی، سازگار با CSP سرور)
 try {
@@ -18,8 +20,10 @@ createRoot(document.getElementById('root')!).render(
 )
 
 // Service Worker برای باز شدن برنامه بدون اینترنت (فقط نسخهٔ ساخته‌شده، روی HTTPS یا localhost، و نه داخل قاب پیش‌نمایش)
-if (import.meta.env.PROD && 'serviceWorker' in navigator && window.isSecureContext && window.top === window.self) {
+if (import.meta.env.PROD && !isNative && 'serviceWorker' in navigator && window.isSecureContext && window.top === window.self) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => undefined)
   })
 }
+
+if (isNative) setupAndroidBackButton()

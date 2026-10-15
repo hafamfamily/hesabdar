@@ -1,0 +1,55 @@
+# ساخت فایل نصب اندروید (APK) روی سرورهای GitHub.
+# خروجی: در صفحهٔ Actions ← همین اجرا ← بخش Artifacts ← dakhl-o-kharj-debug-apk
+name: Android APK
+
+on:
+  push:
+    branches: [claude/phase-1-ui]
+    paths: ['client/**', '.github/workflows/android.yml', 'package-lock.json']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install packages
+        run: npm ci --no-audit --no-fund
+
+      - name: Test app logic
+        run: npm test -w client
+
+      - name: Build web app
+        run: npm run build -w client
+
+      - name: Copy web app into Android project
+        working-directory: client
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: client/android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dakhl-o-kharj-debug-apk
+          path: client/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30

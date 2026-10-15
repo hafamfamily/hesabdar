@@ -11,6 +11,7 @@ import { diffDays, formatJLong, formatJNumeric, todayIso } from '../../lib/jalal
 import { formatAmountInput, formatNumber, parseAmount } from '../../lib/money'
 import { saveFile } from '../../lib/download'
 import { Toggle } from './DebtForm'
+import { isNative } from '../../lib/platform'
 
 export function DebtDetail({ debtId, onClose, onEdit }: { debtId: string; onClose: () => void; onEdit: () => void }) {
   const store = useStore()
@@ -109,9 +110,9 @@ export function DebtDetail({ debtId, onClose, onEdit }: { debtId: string; onClos
             onChange={(v) => store.updateDebt(debt.id, { reminder: { ...debt.reminder, enabled: v } })}
           />
         </div>
-        <button type="button" onClick={exportIcs} className="mt-2 flex w-full items-center justify-center gap-2 py-2 text-[13px] font-semibold text-brand dark:text-brand-light">
+        {!isNative && <button type="button" onClick={exportIcs} className="mt-2 flex w-full items-center justify-center gap-2 py-2 text-[13px] font-semibold text-brand dark:text-brand-light">
           <CalendarPlus size={16} /> افزودن سررسیدها به تقویم آیفون
-        </button>
+        </button>}
 
         <div className="mt-3 mb-2 flex items-center justify-between">
           <h3 className="text-[14px] font-bold">برنامهٔ اقساط</h3>

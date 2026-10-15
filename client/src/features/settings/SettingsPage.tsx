@@ -1,7 +1,7 @@
 import {
   Bell, BellRing, CalendarPlus, ChevronLeft, HardDrive, Trash2, Info, Monitor, Moon, Sun, Tags, Wallet,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { PageHeader } from '../../app/AppShell'
 import { useUI } from '../../app/ui-context'
 import { Sheet } from '../../components/Sheet'
@@ -11,6 +11,8 @@ import type { ThemePref } from '../../data/types'
 import { amountInWords, formatAmountInput, formatNumber, parseAmount } from '../../lib/money'
 import { toEnDigits } from '../../lib/digits'
 import { CategoryManager } from './CategoryManager'
+import { isNative } from '../../lib/platform'
+import { nativePermission } from '../../lib/nativeReminders'
 import { FontPicker } from './FontPicker'
 import { ServerSection } from './ServerSection'
 import { SyncSection } from './SyncSection'
@@ -27,16 +29,22 @@ export function SettingsPage() {
   const ui = useUI()
   const [balanceOpen, setBalanceOpen] = useState(false)
   const [catsOpen, setCatsOpen] = useState(false)
-  const [perm, setPerm] = useState(notificationSupport())
-  const notifHint =
-    perm === 'unsupported'
+  const [perm, setPerm] = useState<string>(isNative ? 'default' : notificationSupport())
+  useEffect(() => {
+    if (isNative) nativePermission().then(setPerm).catch(() => undefined)
+  }, [])
+  const notifHint = isNative
+    ? perm === 'denied'
+      ? 'اجازهٔ اعلان رد شده است؛ از تنظیمات اندروید ← برنامه‌ها ← دخل‌وخرج ← اعلان‌ها فعال کنید'
+      : 'ساعت ۹ صبحِ روز یادآوری، حتی وقتی برنامه بسته است'
+    : perm === 'unsupported'
       ? 'در این مرورگر پشتیبانی نمی‌شود؛ ابتدا برنامه را به صفحهٔ اصلی آیفون اضافه کنید'
       : perm === 'denied'
         ? 'اجازه رد شده است؛ از تنظیمات آیفون فعال کنید'
         : 'هنگام باز کردن برنامه، اقساط نزدیک اعلام می‌شوند'
   const toggleSystemNotif = async (v: boolean) => {
     if (!v) return store.setReminders({ systemNotifications: false })
-    const p = perm === 'granted' ? 'granted' : await requestNotificationPermission()
+    const p = perm === 'granted' ? 'granted' : isNative ? await nativePermission(true) : await requestNotificationPermission()
     setPerm(p)
     if (p === 'granted') {
       await store.setReminders({ systemNotifications: true })
@@ -46,7 +54,9 @@ export function SettingsPage() {
   const wipe = async () => {
     const ok = await ui.confirm({
       title: 'حذف همهٔ داده‌ها',
-      message: 'همهٔ داده‌های این دستگاه پاک و اتصال آن به سرور قطع می‌شود. داده‌های روی سرور لپ‌تاپ حذف نمی‌شوند و با اتصال دوباره برمی‌گردند. داده‌هایی که هنوز همگام نشده‌اند از بین می‌روند.',
+      message: isNative
+        ? 'همهٔ تراکنش‌ها، بدهی‌ها و تنظیمات از این گوشی پاک می‌شوند. اگر نسخهٔ پشتیبان ندارید، ابتدا از «تهیهٔ نسخهٔ پشتیبان» استفاده کنید. این کار برگشت‌پذیر نیست.'
+        : 'همهٔ داده‌های این دستگاه پاک و اتصال آن به سرور قطع می‌شود. داده‌های روی سرور لپ‌تاپ حذف نمی‌شوند و با اتصال دوباره برمی‌گردند. داده‌هایی که هنوز همگام نشده‌اند از بین می‌روند.',
       confirmLabel: 'حذف همه',
       danger: true,
     })
@@ -85,7 +95,7 @@ export function SettingsPage() {
           checked={store.settings.reminders.systemNotifications}
           onChange={toggleSystemNotif}
         />
-        <Row
+        {!isNative && <Row
           icon={<CalendarPlus size={18} />}
           tint="#6366F1"
           label="افزودن همهٔ سررسیدها به تقویم"
@@ -94,7 +104,7 @@ export function SettingsPage() {
             if (!ics.includes('BEGIN:VEVENT')) return ui.toast('قسط پرداخت‌نشده‌ای با یادآوری فعال وجود ندارد', 'info')
             saveFile('aqsat.ics', ics, 'text/calendar')
           }}
-        />
+        />}
       </Group>
 
       <Group title="ظاهر">
@@ -107,10 +117,13 @@ export function SettingsPage() {
         <FontPicker />
       </Group>
 
-      <Group title="سرور لپ‌تاپ و همگام‌سازی">
-        <ServerSection Row={Row} />
-        <SyncSection Row={Row} />
-      </Group>
+      {/* نسخهٔ اندروید مستقل است و به سرور لپ‌تاپ وصل نمی‌شود */}
+      {!isNative && (
+        <Group title="سرور لپ‌تاپ و همگام‌سازی">
+          <ServerSection Row={Row} />
+          <SyncSection Row={Row} />
+        </Group>
+      )}
 
       <Group title="داده‌ها">
         <DataSection Row={Row} appVersion={APP_VERSION} />

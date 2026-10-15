@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- صفحهٔ شروع: رنگ برند با آیکون در وسط (بدون کشیدگی در اندازه‌های مختلف صفحه) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/ic_launcher_background" />
+    <item android:width="144dp" android:height="144dp" android:gravity="center" android:drawable="@drawable/launch_icon" />
+</layer-list>

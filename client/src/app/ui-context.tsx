@@ -55,6 +55,19 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setConfirmState(null)
   }
 
+  // کلید Escape (و دکمهٔ بازگشت اندروید) پنجرهٔ تأیید را می‌بندد
+  useEffect(() => {
+    if (!confirmState) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopImmediatePropagation()
+      confirmState.resolve(false)
+      setConfirmState(null)
+    }
+    window.addEventListener('keydown', onKey, { capture: true })
+    return () => window.removeEventListener('keydown', onKey, { capture: true })
+  }, [confirmState])
+
   const ToastIcon = toast?.kind === 'error' ? AlertCircle : toast?.kind === 'info' ? Info : CheckCircle2
 
   return (
