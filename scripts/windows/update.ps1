@@ -3,8 +3,7 @@
 
 Write-Step 'Getting the latest version'
 if (Test-Path (Join-Path $Root '.git')) {
-  git -C $Root pull --ff-only
-  if ($LASTEXITCODE -ne 0) { Write-Warn2 'git pull failed. Local changes? Ask for help before continuing.'; exit 1 }
+  Invoke-Native 'Downloading the update (git pull)' { git -C $Root pull --ff-only }
 } else {
   Write-Warn2 'This folder was not downloaded with git.'
   Write-Host '    Download the new ZIP from GitHub and extract it over this folder (keep config.json), then run update.bat again.'
@@ -13,11 +12,15 @@ if (Test-Path (Join-Path $Root '.git')) {
   if ($ans -notmatch '^[yY]') { exit 0 }
 }
 
+# Older installers wrote config.json with a BOM; rewrite it without one (content unchanged)
+$cfg = Get-AppConfig
+if ($cfg) { Save-AppConfig $cfg }
+
 Write-Step 'Installing packages and building the app'
 Push-Location $Root
 try {
-  npm ci --no-audit --no-fund
-  npm run build -w client
+  Invoke-Native 'Installing packages (npm ci)' { npm ci --no-audit --no-fund }
+  Invoke-Native 'Building the app (npm run build)' { npm run build -w client }
 } finally { Pop-Location }
 Write-Ok 'Updated.'
 Write-Host '    Close the server window and run start.bat again.'

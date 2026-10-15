@@ -24,18 +24,23 @@ function defaultDataDir() {
   return join(homedir(), 'DakhlKharj', 'data')
 }
 
-/** تنظیمات از config.json در ریشهٔ پروژه، سپس متغیرهای محیطی */
-export function loadConfig(overrides = {}) {
-  const file = join(ROOT, 'config.json')
-  /** @type {Partial<Config>} */
-  let fromFile = {}
-  if (existsSync(file)) {
-    try {
-      fromFile = JSON.parse(readFileSync(file, 'utf8'))
-    } catch (e) {
-      throw new Error(`فایل config.json خراب است: ${/** @type {Error} */ (e).message}`)
-    }
+/**
+ * خواندن config.json. نویسهٔ BOM (که Windows PowerShell 5.1 با -Encoding UTF8 اضافه می‌کند) حذف می‌شود.
+ * @param {string} file
+ * @returns {Partial<Config>}
+ */
+export function readConfigFile(file) {
+  if (!existsSync(file)) return {}
+  try {
+    return JSON.parse(readFileSync(file, 'utf8').replace(/^\uFEFF/, ''))
+  } catch (e) {
+    throw new Error(`فایل config.json خراب است: ${/** @type {Error} */ (e).message}`)
   }
+}
+
+/** تنظیمات از config.json در ریشهٔ پروژه، سپس متغیرهای محیطی */
+export function loadConfig(overrides = {}, file = join(ROOT, 'config.json')) {
+  const fromFile = readConfigFile(file)
   const env = process.env
   /** @type {Config} */
   const cfg = {

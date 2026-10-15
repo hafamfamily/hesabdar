@@ -6,7 +6,7 @@ Write-Step 'Checking mkcert'
 $mk = Get-Command mkcert -ErrorAction SilentlyContinue
 if (-not $mk) {
   Write-Host '    Installing mkcert with winget...'
-  winget install --id FiloSottile.mkcert -e --accept-source-agreements --accept-package-agreements
+  Invoke-Native 'Installing mkcert (winget)' { winget install --id FiloSottile.mkcert -e --accept-source-agreements --accept-package-agreements }
   $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
   $mk = Get-Command mkcert -ErrorAction SilentlyContinue
   if (-not $mk) { Write-Warn2 'mkcert was installed but not found yet. Close this window and run setup-https.bat again.'; exit 1 }
@@ -14,7 +14,7 @@ if (-not $mk) {
 Write-Ok "mkcert: $($mk.Source)"
 
 Write-Step 'Installing the local root certificate on this laptop (click Yes if Windows asks)'
-mkcert -install
+Invoke-Native 'Installing the root certificate (mkcert -install)' { mkcert -install }
 
 $dataDir = Get-DataDir
 $certDir = Join-Path $dataDir 'certs'
@@ -25,9 +25,14 @@ $ips = @(Get-LanIPv4)
 
 Write-Step "Creating certificate for: $hostName, localhost, 127.0.0.1, $($ips -join ', ')"
 $names = @($hostName, 'localhost', '127.0.0.1', '::1') + $ips
-mkcert -cert-file (Join-Path $certDir 'cert.pem') -key-file (Join-Path $certDir 'key.pem') @names
+Invoke-Native 'Creating the certificate (mkcert)' { mkcert -cert-file (Join-Path $certDir 'cert.pem') -key-file (Join-Path $certDir 'key.pem') @names }
 
-$caRoot = (mkcert -CAROOT).Trim()
+$global:LASTEXITCODE = 0
+$caRoot = (mkcert -CAROOT | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $caRoot 'rootCA.pem'))) {
+  Write-Fail "Could not find the mkcert root certificate (folder: '$caRoot')."
+  exit 1
+}
 Copy-Item (Join-Path $caRoot 'rootCA.pem') (Join-Path $certDir 'rootCA.pem') -Force
 Write-Ok "Certificate saved in $certDir"
 Write-Warn2 "Never share rootCA-key.pem from $caRoot. It stays only on this laptop."
