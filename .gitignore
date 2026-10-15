@@ -3,8 +3,9 @@ dist/
 *.log
 .DS_Store
 # داده و گواهی‌ها هرگز وارد مخزن نشوند
-data/
-certs/
+# (با / در ابتدا: فقط پوشهٔ ریشه؛ پوشهٔ کد client/src/data نباید نادیده گرفته شود)
+/data/
+/certs/
 *.sqlite
 *.sqlite-*
 *.db
@@ -13,4 +14,4 @@ certs/
 .env
 *.tsbuildinfo
 dist-preview/
-config.json
+/config.json
